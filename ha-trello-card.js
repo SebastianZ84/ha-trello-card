@@ -1,3 +1,7 @@
+// Trello Board Card v1.0.0
+// Home Assistant custom card for displaying Trello boards
+// https://github.com/SebastianZ84/ha-trello-card
+
 class TrelloBoardCard extends HTMLElement {
   constructor() {
     super();
