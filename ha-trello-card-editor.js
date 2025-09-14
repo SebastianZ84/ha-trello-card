@@ -1,11 +1,33 @@
 class TrelloBoardCardEditor extends HTMLElement {
+  
+  set hass(hass) {
+    this._hass = hass;
+    if (this.config) {
+      this.render();
+    }
+  }
+
+  get hass() {
+    return this._hass;
+  }
+
   setConfig(config) {
-    this.config = config;
-    this.render();
+    if (!config) {
+      throw new Error('Invalid configuration');
+    }
+    this.config = { ...config };
+    if (this.hass) {
+      this.render();
+    }
   }
 
   render() {
-    if (!this.hass) {
+    if (!this.hass || !this.config) {
+      this.innerHTML = `
+        <div class="card-config" style="padding: 16px;">
+          <p>Loading editor...</p>
+        </div>
+      `;
       return;
     }
 
@@ -39,9 +61,8 @@ class TrelloBoardCardEditor extends HTMLElement {
             .hass="${this.hass}"
             .value="${this.config.entity_id || ''}"
             .includeDomains="${['sensor']}"
-            .entityFilter="${(entity) => entity.entity_id.startsWith('sensor.trello_') && (entity.attributes.board_data || entity.attributes.board_id)}"
             label="Trello Board Entity (Recommended)"
-            @value-changed="${this.entityChanged}"
+            @value-changed="${this.entityChanged.bind(this)}"
           ></ha-entity-picker>
           <div class="helper-text">Select your Trello board entity from the dropdown</div>
         </div>
@@ -51,7 +72,7 @@ class TrelloBoardCardEditor extends HTMLElement {
             label="Board ID (Legacy)"
             .value="${this.config.board_id || ''}"
             .configValue="${'board_id'}"
-            @value-changed="${this.valueChanged}"
+            @value-changed="${this.valueChanged.bind(this)}"
             .disabled="${!!this.config.entity_id}"
           ></paper-input>
           <div class="helper-text">
