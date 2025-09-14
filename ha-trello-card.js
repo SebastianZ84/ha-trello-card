@@ -1,4 +1,4 @@
-// Trello Board Card v1.1.3-debug
+// Trello Board Card v1.1.4-debug
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -94,6 +94,19 @@ class TrelloBoardCard extends HTMLElement {
       console.log('[Trello Card] Board disappeared - no board data found');
       console.log('[Trello Card] Config used:', this.config);
       console.log('[Trello Card] Has hass:', !!this._hass);
+      
+      // Show all available Trello entities for debugging
+      if (this._hass && this._hass.states) {
+        const trelloEntities = Object.keys(this._hass.states)
+          .filter(id => id.includes('trello'))
+          .map(id => ({
+            entity_id: id,
+            state: this._hass.states[id].state,
+            attributes: Object.keys(this._hass.states[id].attributes)
+          }));
+        console.log('[Trello Card] Available Trello entities:', trelloEntities);
+      }
+      
       return this._lastRenderData !== null; // Board disappeared
     }
     
