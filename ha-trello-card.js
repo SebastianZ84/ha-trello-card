@@ -1,4 +1,4 @@
-// Trello Board Card v1.3.2
+// Trello Board Card v1.3.4
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -627,10 +627,16 @@ class TrelloBoardCard extends HTMLElement {
     `;
 
     this.setupEventListeners();
+    // Force event listener refresh even if in edit mode
+    this._settingUpListeners = false;
     this._setupScrollHandling();
   }
 
   setupEventListeners() {
+    // Skip if already setting up to prevent infinite loops
+    if (this._settingUpListeners) return;
+    this._settingUpListeners = true;
+    
     // Drag and drop functionality
     const cards = this.shadowRoot.querySelectorAll('.trello-card');
     const containers = this.shadowRoot.querySelectorAll('.cards-container');
@@ -675,6 +681,9 @@ class TrelloBoardCard extends HTMLElement {
     deleteButtons.forEach(button => {
       button.addEventListener('click', this.handleDeleteCard.bind(this));
     });
+    
+    // Reset the flag
+    this._settingUpListeners = false;
   }
 
   handleDragStart(e) {
@@ -1105,6 +1114,11 @@ class TrelloBoardCard extends HTMLElement {
     
     // Remove card from UI immediately (optimistic update)
     card.remove();
+    
+    // Reattach event listeners to remaining cards
+    this.setupEventListeners();
+    // Force event listener refresh even if in edit mode
+    this._settingUpListeners = false;
     
     // Call delete service
     const serviceCall = this._hass.callService('trello', 'delete_card', {
