@@ -1,5 +1,5 @@
-// Trello Board Card v1.0.0
-// Home Assistant custom card for displaying Trello boards
+// Trello Board Card v1.1.0
+// Home Assistant custom card for displaying Trello boards with Mushroom design and editing
 // https://github.com/SebastianZ84/ha-trello-card
 
 class TrelloBoardCard extends HTMLElement {
@@ -40,132 +40,295 @@ class TrelloBoardCard extends HTMLElement {
     this.shadowRoot.innerHTML = `
       <style>
         :host {
-          --mdc-theme-primary: var(--primary-color);
+          --spacing: 8px;
+          --mushroom-spacing: calc(var(--spacing) * 2);
+          --mushroom-border-radius: 12px;
+          --mushroom-card-border-radius: 8px;
+          --mushroom-shape-border-radius: 50%;
         }
         
         .board-container {
-          padding: 16px;
           background: var(--card-background-color);
-          border-radius: 8px;
-          box-shadow: var(--ha-card-box-shadow);
+          border-radius: var(--mushroom-border-radius);
+          border-width: var(--ha-card-border-width, 1px);
+          border-style: solid;
+          border-color: var(--divider-color);
+          box-shadow: none;
+          padding: var(--mushroom-spacing);
         }
         
         .board-header {
-          margin-bottom: 16px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid var(--divider-color);
+          display: flex;
+          align-items: center;
+          padding: var(--mushroom-spacing);
+          margin-bottom: var(--spacing);
+          background: var(--secondary-background-color);
+          border-radius: var(--mushroom-card-border-radius);
         }
         
         .board-title {
-          font-size: 24px;
+          font-size: 16px;
           font-weight: 500;
           margin: 0;
           color: var(--primary-text-color);
+          flex: 1;
         }
         
         .board-lists {
           display: flex;
-          gap: 16px;
+          gap: var(--spacing);
           overflow-x: auto;
-          padding-bottom: 8px;
+          padding-bottom: var(--spacing);
         }
         
         .list-column {
-          flex: 0 0 300px;
+          flex: 0 0 280px;
           background: var(--secondary-background-color);
-          border-radius: 8px;
-          padding: 12px;
+          border-radius: var(--mushroom-card-border-radius);
+          padding: var(--spacing);
+          border: 1px solid var(--divider-color);
         }
         
         .list-header {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          margin-bottom: 12px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid var(--divider-color);
+          justify-content: space-between;
+          margin-bottom: var(--spacing);
+          padding: var(--spacing);
+          background: rgba(var(--rgb-primary-color), 0.1);
+          border-radius: var(--mushroom-card-border-radius);
         }
         
         .list-title {
           font-weight: 500;
           color: var(--primary-text-color);
           margin: 0;
+          font-size: 14px;
         }
         
         .card-count {
-          background: var(--primary-color);
-          color: var(--text-primary-color);
-          border-radius: 12px;
-          padding: 2px 8px;
+          background: rgba(var(--rgb-primary-color), 0.2);
+          color: var(--primary-color);
+          border-radius: var(--mushroom-shape-border-radius);
+          padding: 4px 8px;
           font-size: 12px;
+          font-weight: 500;
+          min-width: 20px;
+          text-align: center;
         }
         
         .cards-container {
-          min-height: 100px;
+          min-height: 60px;
           border: 2px dashed transparent;
           transition: all 0.2s ease;
-          border-radius: 4px;
+          border-radius: var(--mushroom-card-border-radius);
+          padding: 2px;
         }
         
         .cards-container.drag-over {
-          border-color: var(--primary-color);
-          background-color: var(--primary-color-alpha);
+          border-color: rgba(var(--rgb-primary-color), 0.5);
+          background-color: rgba(var(--rgb-primary-color), 0.1);
         }
         
         .trello-card {
           background: var(--card-background-color);
-          border-radius: 6px;
-          padding: 12px;
-          margin-bottom: 8px;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-          cursor: move;
-          transition: all 0.2s ease;
+          border-radius: var(--mushroom-card-border-radius);
+          padding: var(--spacing);
+          margin-bottom: var(--spacing);
           border: 1px solid var(--divider-color);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          position: relative;
         }
         
         .trello-card:hover {
-          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-          transform: translateY(-1px);
+          background: var(--secondary-background-color);
+          border-color: rgba(var(--rgb-primary-color), 0.3);
         }
         
         .trello-card.dragging {
-          opacity: 0.5;
-          transform: rotate(5deg);
+          opacity: 0.6;
+          transform: scale(1.02);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .trello-card.editing {
+          border-color: var(--primary-color);
+          box-shadow: 0 0 0 2px rgba(var(--rgb-primary-color), 0.2);
+        }
+        
+        .card-content {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
         
         .card-title {
           font-weight: 500;
-          margin: 0 0 4px 0;
+          margin: 0;
           color: var(--primary-text-color);
+          font-size: 14px;
+          line-height: 1.3;
+          word-wrap: break-word;
+        }
+        
+        .card-title.editing {
+          display: none;
+        }
+        
+        .card-title-input {
+          display: none;
+          width: 100%;
+          border: none;
+          background: transparent;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--primary-text-color);
+          font-family: inherit;
+          resize: none;
+          outline: none;
+          padding: 0;
+          margin: 0;
+          line-height: 1.3;
+        }
+        
+        .card-title-input.editing {
+          display: block;
         }
         
         .card-description {
-          font-size: 13px;
+          font-size: 12px;
           color: var(--secondary-text-color);
           margin: 0;
-          line-height: 1.3;
+          line-height: 1.4;
+          word-wrap: break-word;
+        }
+        
+        .card-description.editing {
+          display: none;
+        }
+        
+        .card-description-input {
+          display: none;
+          width: 100%;
+          border: none;
+          background: transparent;
+          font-size: 12px;
+          color: var(--secondary-text-color);
+          font-family: inherit;
+          resize: none;
+          outline: none;
+          padding: 0;
+          margin: 0;
+          line-height: 1.4;
+          min-height: 40px;
+        }
+        
+        .card-description-input.editing {
+          display: block;
+        }
+        
+        .card-meta {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing);
+          margin-top: 4px;
         }
         
         .card-due {
           font-size: 11px;
           color: var(--warning-color);
-          margin-top: 4px;
+          background: rgba(var(--rgb-warning-color), 0.1);
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+        
+        .card-actions {
+          position: absolute;
+          top: 4px;
+          right: 4px;
+          display: none;
+          gap: 2px;
+        }
+        
+        .trello-card:hover .card-actions {
+          display: flex;
+        }
+        
+        .card-action-btn {
+          width: 24px;
+          height: 24px;
+          border: none;
+          background: rgba(var(--rgb-primary-color), 0.1);
+          color: var(--primary-color);
+          border-radius: 4px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          transition: all 0.2s ease;
+        }
+        
+        .card-action-btn:hover {
+          background: rgba(var(--rgb-primary-color), 0.2);
+        }
+        
+        .card-edit-actions {
+          display: none;
+          gap: var(--spacing);
+          margin-top: var(--spacing);
+          padding-top: var(--spacing);
+          border-top: 1px solid var(--divider-color);
+        }
+        
+        .card-edit-actions.editing {
+          display: flex;
+        }
+        
+        .card-edit-btn {
+          flex: 1;
+          padding: 6px 12px;
+          border: 1px solid var(--divider-color);
+          border-radius: 6px;
+          background: var(--secondary-background-color);
+          color: var(--primary-text-color);
+          cursor: pointer;
+          font-size: 12px;
+          font-weight: 500;
+          transition: all 0.2s ease;
+        }
+        
+        .card-edit-btn.primary {
+          background: var(--primary-color);
+          color: var(--text-primary-color);
+          border-color: var(--primary-color);
+        }
+        
+        .card-edit-btn:hover {
+          background: var(--primary-color);
+          color: var(--text-primary-color);
+          border-color: var(--primary-color);
         }
         
         .add-card-btn {
           width: 100%;
-          padding: 8px;
-          border: 2px dashed var(--divider-color);
+          padding: var(--spacing);
+          border: 1px dashed var(--divider-color);
           background: transparent;
-          border-radius: 4px;
+          border-radius: var(--mushroom-card-border-radius);
           color: var(--secondary-text-color);
           cursor: pointer;
           transition: all 0.2s ease;
+          font-size: 13px;
+          font-weight: 500;
         }
         
         .add-card-btn:hover {
           border-color: var(--primary-color);
           color: var(--primary-color);
+          background: rgba(var(--rgb-primary-color), 0.05);
         }
       </style>
       
@@ -182,10 +345,21 @@ class TrelloBoardCard extends HTMLElement {
               </div>
               <div class="cards-container" data-list-id="${list.id}">
                 ${list.cards.map(card => `
-                  <div class="trello-card" draggable="true" data-card-id="${card.id}">
-                    <div class="card-title">${card.name}</div>
-                    ${card.desc ? `<div class="card-description">${card.desc}</div>` : ''}
-                    ${card.due ? `<div class="card-due">Due: ${new Date(card.due).toLocaleDateString()}</div>` : ''}
+                  <div class="trello-card" draggable="true" data-card-id="${card.id}" data-card-name="${card.name}" data-card-desc="${card.desc || ''}">
+                    <div class="card-actions">
+                      <button class="card-action-btn edit-btn" title="Edit card">✏️</button>
+                    </div>
+                    <div class="card-content">
+                      <div class="card-title">${card.name}</div>
+                      <textarea class="card-title-input" rows="1">${card.name}</textarea>
+                      ${card.desc ? `<div class="card-description">${card.desc}</div>` : '<div class="card-description" style="display: none;"></div>'}
+                      <textarea class="card-description-input" placeholder="Add description...">${card.desc || ''}</textarea>
+                      ${card.due ? `<div class="card-meta"><div class="card-due">Due: ${new Date(card.due).toLocaleDateString()}</div></div>` : ''}
+                    </div>
+                    <div class="card-edit-actions">
+                      <button class="card-edit-btn primary save-btn">Save</button>
+                      <button class="card-edit-btn cancel-btn">Cancel</button>
+                    </div>
                   </div>
                 `).join('')}
               </div>
@@ -206,10 +380,16 @@ class TrelloBoardCard extends HTMLElement {
     const cards = this.shadowRoot.querySelectorAll('.trello-card');
     const containers = this.shadowRoot.querySelectorAll('.cards-container');
     const addButtons = this.shadowRoot.querySelectorAll('.add-card-btn');
+    
+    // Edit functionality
+    const editButtons = this.shadowRoot.querySelectorAll('.edit-btn');
+    const saveButtons = this.shadowRoot.querySelectorAll('.save-btn');
+    const cancelButtons = this.shadowRoot.querySelectorAll('.cancel-btn');
 
     cards.forEach(card => {
       card.addEventListener('dragstart', this.handleDragStart.bind(this));
       card.addEventListener('dragend', this.handleDragEnd.bind(this));
+      card.addEventListener('dblclick', this.handleCardDoubleClick.bind(this));
     });
 
     containers.forEach(container => {
@@ -221,6 +401,18 @@ class TrelloBoardCard extends HTMLElement {
 
     addButtons.forEach(button => {
       button.addEventListener('click', this.handleAddCard.bind(this));
+    });
+    
+    editButtons.forEach(button => {
+      button.addEventListener('click', this.handleEditCard.bind(this));
+    });
+    
+    saveButtons.forEach(button => {
+      button.addEventListener('click', this.handleSaveCard.bind(this));
+    });
+    
+    cancelButtons.forEach(button => {
+      button.addEventListener('click', this.handleCancelEdit.bind(this));
     });
   }
 
@@ -287,6 +479,158 @@ class TrelloBoardCard extends HTMLElement {
       name: name,
       description: description
     });
+  }
+
+  handleCardDoubleClick(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const card = e.currentTarget;
+    this.enterEditMode(card);
+  }
+
+  handleEditCard(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const card = e.target.closest('.trello-card');
+    this.enterEditMode(card);
+  }
+
+  handleSaveCard(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const card = e.target.closest('.trello-card');
+    this.saveCardChanges(card);
+  }
+
+  handleCancelEdit(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const card = e.target.closest('.trello-card');
+    this.exitEditMode(card);
+  }
+
+  enterEditMode(card) {
+    // Disable dragging during edit
+    card.setAttribute('draggable', 'false');
+    card.classList.add('editing');
+    
+    // Show input fields, hide display elements
+    const title = card.querySelector('.card-title');
+    const titleInput = card.querySelector('.card-title-input');
+    const description = card.querySelector('.card-description');
+    const descriptionInput = card.querySelector('.card-description-input');
+    const editActions = card.querySelector('.card-edit-actions');
+    
+    title.classList.add('editing');
+    titleInput.classList.add('editing');
+    description.classList.add('editing');
+    descriptionInput.classList.add('editing');
+    editActions.classList.add('editing');
+    
+    // Focus on title input
+    titleInput.focus();
+    titleInput.select();
+    
+    // Auto-resize textareas
+    this.autoResizeTextarea(titleInput);
+    this.autoResizeTextarea(descriptionInput);
+    
+    // Handle enter key in title (save), escape (cancel)
+    titleInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.saveCardChanges(card);
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        this.exitEditMode(card);
+      }
+    });
+    
+    descriptionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        this.exitEditMode(card);
+      }
+    });
+    
+    // Auto-resize on input
+    titleInput.addEventListener('input', () => this.autoResizeTextarea(titleInput));
+    descriptionInput.addEventListener('input', () => this.autoResizeTextarea(descriptionInput));
+  }
+
+  exitEditMode(card) {
+    // Re-enable dragging
+    card.setAttribute('draggable', 'true');
+    card.classList.remove('editing');
+    
+    // Hide input fields, show display elements
+    const title = card.querySelector('.card-title');
+    const titleInput = card.querySelector('.card-title-input');
+    const description = card.querySelector('.card-description');
+    const descriptionInput = card.querySelector('.card-description-input');
+    const editActions = card.querySelector('.card-edit-actions');
+    
+    title.classList.remove('editing');
+    titleInput.classList.remove('editing');
+    description.classList.remove('editing');
+    descriptionInput.classList.remove('editing');
+    editActions.classList.remove('editing');
+    
+    // Restore original values
+    const originalName = card.dataset.cardName;
+    const originalDesc = card.dataset.cardDesc;
+    titleInput.value = originalName;
+    descriptionInput.value = originalDesc;
+  }
+
+  saveCardChanges(card) {
+    const cardId = card.dataset.cardId;
+    const titleInput = card.querySelector('.card-title-input');
+    const descriptionInput = card.querySelector('.card-description-input');
+    const newName = titleInput.value.trim();
+    const newDesc = descriptionInput.value.trim();
+    
+    if (!newName) {
+      alert('Card name cannot be empty');
+      titleInput.focus();
+      return;
+    }
+    
+    // Update the card via Home Assistant service
+    // Note: Trello API typically requires separate calls for name and description
+    // For now, we'll create a custom service call or use existing ones
+    this.updateCard(cardId, newName, newDesc);
+    
+    // Update UI immediately for better UX
+    const title = card.querySelector('.card-title');
+    const description = card.querySelector('.card-description');
+    
+    title.textContent = newName;
+    if (newDesc) {
+      description.textContent = newDesc;
+      description.style.display = 'block';
+    } else {
+      description.style.display = 'none';
+    }
+    
+    // Update data attributes
+    card.dataset.cardName = newName;
+    card.dataset.cardDesc = newDesc;
+    
+    this.exitEditMode(card);
+  }
+
+  updateCard(cardId, name, description) {
+    this._hass.callService('trello', 'update_card', {
+      card_id: cardId,
+      name: name,
+      description: description
+    });
+  }
+
+  autoResizeTextarea(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight) + 'px';
   }
 
   _getBoardData(boardId) {
