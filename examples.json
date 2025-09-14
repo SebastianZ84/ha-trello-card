@@ -1,0 +1,22 @@
+type: custom:trello-board
+board_id: "68c526f29a185918e29edff5"
+styles:
+  card:
+    - background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
+list_column:
+    - background: "#2d3748"
+    - border: "1px solid #4a5568"
+    - box-shadow: "0 4px 12px rgba(0,0,0,0.4)"
+list_title:
+    - color: "#e2e8f0"
+    - font-weight: "600"
+trello_card:
+    - background: "#4a5568"
+    - border: "1px solid #718096"
+    - color: "#f7fafc"
+card_title:
+    - color: "#f7fafc"
+board_title:
+    - color: "#63b3ed"
+    - font-size: "24px"
+    - font-weight: "700"

@@ -1,0 +1,96 @@
+# Working examples with array format (YAML with dashes)
+# Copy these into your Home Assistant dashboard
+
+# Example 1: Glass Theme with Array Format
+type: custom:trello-board
+board_id: "68c526f29a185918e29edff5"
+card_background: "rgba(0,0,0,0.1)"
+card_transparency: 0.9
+styles:
+  list_column:
+    - "background: rgba(255,255,255,0.1)"
+    - "backdrop-filter: blur(10px)"
+    - "border: 1px solid rgba(255,255,255,0.2)"
+    - "border-radius: 12px"
+  trello_card:
+    - "background: rgba(255,255,255,0.05)"
+    - "backdrop-filter: blur(5px)"
+    - "border: 1px solid rgba(0,0,0,0.1)"
+    - "box-shadow: 0 2px 4px rgba(0,0,0,0.1)"
+  board_title:
+    - "font-size: 24px"
+    - "font-weight: bold"
+    - "color: var(--primary-color)"
+
+# Example 2: Dark Theme with Array Format
+type: custom:trello-board
+board_id: "68c526f29a185918e29edff5"
+styles:
+  card:
+    - "background: #1a1a1a"
+  list_column:
+    - "background: #2d2d2d"
+    - "border: 1px solid #404040"
+    - "border-radius: 8px"
+  board_title:
+    - "color: #ffffff"
+    - "font-weight: 600"
+  trello_card:
+    - "background: #3a3a3a"
+    - "border: 1px solid #555"
+    - "color: #fff"
+  card_title:
+    - "color: #ffffff"
+    - "font-weight: 500"
+
+# Example 3: Colorful Theme with Array Format
+type: custom:trello-board
+board_id: "68c526f29a185918e29edff5"
+show_header: true
+show_card_counts: true
+styles:
+  board_title:
+    - "font-size: 28px"
+    - "font-weight: 800"
+    - "color: #ff6b35"
+    - "text-align: center"
+  list_column:
+    - "background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    - "border-radius: 15px"
+    - "padding: 16px"
+    - "margin: 8px"
+  list_title:
+    - "color: white"
+    - "font-weight: bold"
+    - "font-size: 16px"
+  trello_card:
+    - "background: rgba(255,255,255,0.9)"
+    - "border-radius: 8px"
+    - "box-shadow: 0 4px 8px rgba(0,0,0,0.1)"
+    - "margin-bottom: 8px"
+  card_title:
+    - "color: #333"
+    - "font-weight: 600"
+  card_count:
+    - "background: rgba(255,255,255,0.8)"
+    - "color: #333"
+    - "font-weight: bold"
+
+# Example 4: Minimal Theme with Array Format
+type: custom:trello-board
+board_id: "68c526f29a185918e29edff5"
+show_header: false
+show_card_counts: false
+styles:
+  list_column:
+    - "background: transparent"
+    - "border: none"
+    - "box-shadow: none"
+  trello_card:
+    - "box-shadow: none"
+    - "border: 1px solid var(--divider-color)"
+    - "background: var(--card-background-color)"
+  list_title:
+    - "font-size: 14px"
+    - "font-weight: 500"
+    - "color: var(--secondary-text-color)"
