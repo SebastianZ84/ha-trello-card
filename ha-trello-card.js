@@ -1,4 +1,4 @@
-// Trello Board Card v1.0.0
+// Trello Board Card v1.1.0
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -19,8 +19,8 @@ class TrelloBoardCard extends HTMLElement {
   }
 
   _validateConfig(config) {
-    if (!config.board_id) {
-      throw new Error('board_id is required');
+    if (!config.entity_id && !config.board_id) {
+      throw new Error('entity_id or board_id is required');
     }
     
     // Set defaults for styling - safely handle undefined styles
@@ -158,15 +158,24 @@ class TrelloBoardCard extends HTMLElement {
   render() {
     if (!this.config || !this._hass) return;
 
-    const boardId = this.config.board_id;
-    const boardData = this._getBoardData(boardId);
+    // Use entity_id if provided, otherwise fall back to board_id
+    let boardData;
+    if (this.config.entity_id) {
+      boardData = this._getBoardDataByEntityId(this.config.entity_id);
+    } else {
+      boardData = this._getBoardData(this.config.board_id);
+    }
 
     if (!boardData) {
       this._lastRenderData = null;
+      const identifier = this.config.entity_id ? `entity "${this.config.entity_id}"` : `board ID "${this.config.board_id}"`;
       this.shadowRoot.innerHTML = `
         <ha-card>
           <div class="card-content">
-            <p>Board not found or not loaded yet</p>
+            <p>Board not found for ${identifier}</p>
+            <p style="font-size: 12px; color: var(--secondary-text-color);">
+              Make sure the Trello integration is configured and the ${this.config.entity_id ? 'entity exists' : 'board ID is correct'}.
+            </p>
           </div>
         </ha-card>
       `;
@@ -1142,6 +1151,29 @@ class TrelloBoardCard extends HTMLElement {
     };
     
     return selectorMap[elementName] || `.${elementName}`;
+  }
+
+  _getBoardDataByEntityId(entityId) {
+    // Direct lookup by entity ID
+    const entity = this._hass.states[entityId];
+    
+    if (!entity) {
+      console.error(`[Trello Card] Entity ${entityId} not found`);
+      return null;
+    }
+    
+    // Check if entity has board_data attribute (new format)
+    if (entity.attributes.board_data) {
+      return entity.attributes.board_data;
+    }
+    
+    // Check if entity has board_id (legacy format) 
+    if (entity.attributes.board_id) {
+      return this._getBoardData(entity.attributes.board_id);
+    }
+    
+    console.error(`[Trello Card] Entity ${entityId} does not appear to be a Trello board sensor`);
+    return null;
   }
 
   _getBoardData(boardId) {

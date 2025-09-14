@@ -40,14 +40,14 @@ resources:
 
 ```yaml
 type: custom:trello-board
-board_id: "your_board_id_here"
+entity_id: "sensor.trello_board_your_board_name"
 ```
 
 ### Full Configuration Options
 
 ```yaml
 type: custom:trello-board
-board_id: "your_board_id_here"
+entity_id: "sensor.trello_board_your_board_name"  # Recommended
 show_header: true              # Show/hide board title header
 show_card_counts: true         # Show/hide card count badges
 card_background: "rgba(0,0,0,0.1)"  # Custom background color
@@ -69,12 +69,18 @@ styles:                        # Custom styling for elements
     - border-radius: "12px"
 ```
 
-### Finding Your Board ID
+### Finding Your Board Entity
 
+**Recommended Method (Entity ID):**
 1. Go to **Developer Tools** → **States**
-2. Find a sensor like `sensor.trello_enhanced_[board_name]_board`  
-3. Check the `board_id` attribute
-4. Copy this value for your card configuration
+2. Find a sensor like `sensor.trello_board_[board_name]`  
+3. Copy the full entity ID (e.g., `sensor.trello_board_my_project`)
+4. Use this as `entity_id` in your card configuration
+
+**Legacy Method (Board ID):**
+1. In Developer Tools → States, find your Trello sensor
+2. Check the `board_id` attribute  
+3. Copy this value for `board_id` configuration (not recommended)
 
 ## Styling Options
 
@@ -100,7 +106,8 @@ styles:                        # Custom styling for elements
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `board_id` | string | **required** | Trello board ID |
+| `entity_id` | string | *recommended* | Home Assistant Trello board entity ID |
+| `board_id` | string | *legacy* | Trello board ID (use entity_id instead) |
 | `show_header` | boolean | `true` | Show board title header |
 | `show_card_counts` | boolean | `true` | Show card count badges |
 | `card_background` | string | `''` | Custom background color/image |
@@ -131,7 +138,7 @@ styles:
 #### Glass Theme
 ```yaml
 type: custom:trello-board
-board_id: "your_board_id"
+entity_id: "sensor.trello_board_your_board"
 card_background: "rgba(0,0,0,0.1)"
 card_transparency: 0.9
 styles:
@@ -147,7 +154,7 @@ styles:
 #### Dark Theme
 ```yaml
 type: custom:trello-board
-board_id: "your_board_id"
+entity_id: "sensor.trello_board_your_board"
 styles:
   card:
     - background: "#1a1a1a"
@@ -161,7 +168,7 @@ styles:
 #### Minimal Theme
 ```yaml
 type: custom:trello-board
-board_id: "your_board_id"
+entity_id: "sensor.trello_board_your_board"
 show_header: false
 show_card_counts: false
 styles:

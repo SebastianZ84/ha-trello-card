@@ -3,7 +3,7 @@
 
 # Example 1: Glass Theme with Array Format
 type: custom:trello-board
-board_id: "68c526f29a185918e29edff5"
+entity_id: "sensor.trello_board_your_board_name"
 card_background: "rgba(0,0,0,0.1)"
 card_transparency: 0.9
 styles:
@@ -24,7 +24,7 @@ styles:
 
 # Example 2: Dark Theme with Array Format
 type: custom:trello-board
-board_id: "68c526f29a185918e29edff5"
+entity_id: "sensor.trello_board_your_board_name"
 styles:
   card:
     - "background: #1a1a1a"
@@ -45,7 +45,7 @@ styles:
 
 # Example 3: Colorful Theme with Array Format
 type: custom:trello-board
-board_id: "68c526f29a185918e29edff5"
+entity_id: "sensor.trello_board_your_board_name"
 show_header: true
 show_card_counts: true
 styles:
@@ -78,7 +78,7 @@ styles:
 
 # Example 4: Minimal Theme with Array Format
 type: custom:trello-board
-board_id: "68c526f29a185918e29edff5"
+entity_id: "sensor.trello_board_your_board_name"
 show_header: false
 show_card_counts: false
 styles:
