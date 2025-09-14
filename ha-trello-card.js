@@ -1,4 +1,4 @@
-// Trello Board Card v1.2.0
+// Trello Board Card v1.2.3
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -88,6 +88,16 @@ class TrelloBoardCard extends HTMLElement {
       }
       // Remove the else clause completely to stop the infinite loop
     }
+  }
+
+  _formatDescription(desc) {
+    if (!desc) return '';
+    
+    // Handle different types of line breaks
+    return desc
+      .replace(/\r\n/g, '<br>')  // Windows line breaks
+      .replace(/\n/g, '<br>')    // Unix line breaks
+      .replace(/\r/g, '<br>');   // Mac line breaks
   }
 
   _hasDataChanged(newBoardData) {
@@ -584,7 +594,7 @@ class TrelloBoardCard extends HTMLElement {
                     <div class="card-content">
                       <div class="card-title">${card.name}</div>
                       <textarea class="card-title-input" rows="1">${card.name}</textarea>
-                      ${card.desc ? `<div class="card-description">${card.desc}</div>` : '<div class="card-description" style="display: none;"></div>'}
+                      ${card.desc ? `<div class="card-description">${this._formatDescription(card.desc)}</div>` : '<div class="card-description" style="display: none;"></div>'}
                       <textarea class="card-description-input" placeholder="Add description...">${card.desc || ''}</textarea>
                       ${card.due ? `<div class="card-meta"><div class="card-due">Due: ${new Date(card.due).toLocaleDateString()}</div></div>` : ''}
                     </div>
@@ -842,7 +852,7 @@ class TrelloBoardCard extends HTMLElement {
     cardElement.innerHTML = `
       <div class="card-content">
         <div class="card-title">${name}</div>
-        ${description ? `<div class="card-description">${description}</div>` : ''}
+        ${description ? `<div class="card-description">${this._formatDescription(description)}</div>` : ''}
       </div>
     `;
     return cardElement;
@@ -1016,7 +1026,7 @@ class TrelloBoardCard extends HTMLElement {
     
     title.textContent = newName;
     if (newDesc) {
-      description.textContent = newDesc;
+      description.innerHTML = this._formatDescription(newDesc);
       description.style.display = 'block';
     } else {
       description.style.display = 'none';
