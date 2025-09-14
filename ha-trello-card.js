@@ -1,4 +1,4 @@
-// Trello Board Card v1.2.3
+// Trello Board Card v1.3.2
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -522,6 +522,17 @@ class TrelloBoardCard extends HTMLElement {
           border-color: var(--primary-color);
         }
         
+        .card-edit-btn.danger {
+          background: var(--error-color, #f44336);
+          color: white;
+          border-color: var(--error-color, #f44336);
+        }
+        
+        .card-edit-btn.danger:hover {
+          background: var(--error-color-dark, #d32f2f);
+          border-color: var(--error-color-dark, #d32f2f);
+        }
+        
         .card-edit-btn:hover {
           background: var(--primary-color);
           color: var(--text-primary-color);
@@ -601,6 +612,7 @@ class TrelloBoardCard extends HTMLElement {
                     <div class="card-edit-actions">
                       <button class="card-edit-btn primary save-btn">Save</button>
                       <button class="card-edit-btn cancel-btn">Cancel</button>
+                      <button class="card-edit-btn danger delete-btn">Delete</button>
                     </div>
                   </div>
                 `).join('')}
@@ -628,6 +640,8 @@ class TrelloBoardCard extends HTMLElement {
     const editButtons = this.shadowRoot.querySelectorAll('.edit-btn');
     const saveButtons = this.shadowRoot.querySelectorAll('.save-btn');
     const cancelButtons = this.shadowRoot.querySelectorAll('.cancel-btn');
+    const deleteButtons = this.shadowRoot.querySelectorAll('.delete-btn');
+    
 
     cards.forEach(card => {
       card.addEventListener('dragstart', this.handleDragStart.bind(this));
@@ -656,6 +670,10 @@ class TrelloBoardCard extends HTMLElement {
     
     cancelButtons.forEach(button => {
       button.addEventListener('click', this.handleCancelEdit.bind(this));
+    });
+    
+    deleteButtons.forEach(button => {
+      button.addEventListener('click', this.handleDeleteCard.bind(this));
     });
   }
 
@@ -734,17 +752,21 @@ class TrelloBoardCard extends HTMLElement {
 
   updateCardCountsOptimistically(sourceContainer, targetContainer, sourceChange, targetChange) {
     // Update source list count
-    const sourceListHeader = sourceContainer.closest('.list-column')?.querySelector('.card-count');
-    if (sourceListHeader) {
-      const currentCount = parseInt(sourceListHeader.textContent) || 0;
-      sourceListHeader.textContent = Math.max(0, currentCount + sourceChange);
+    if (sourceContainer) {
+      const sourceListHeader = sourceContainer.closest('.list-column')?.querySelector('.card-count');
+      if (sourceListHeader) {
+        const currentCount = parseInt(sourceListHeader.textContent) || 0;
+        sourceListHeader.textContent = Math.max(0, currentCount + sourceChange);
+      }
     }
     
     // Update target list count  
-    const targetListHeader = targetContainer.closest('.list-column')?.querySelector('.card-count');
-    if (targetListHeader) {
-      const currentCount = parseInt(targetListHeader.textContent) || 0;
-      targetListHeader.textContent = currentCount + targetChange;
+    if (targetContainer) {
+      const targetListHeader = targetContainer.closest('.list-column')?.querySelector('.card-count');
+      if (targetListHeader) {
+        const currentCount = parseInt(targetListHeader.textContent) || 0;
+        targetListHeader.textContent = currentCount + targetChange;
+      }
     }
   }
 
@@ -889,6 +911,13 @@ class TrelloBoardCard extends HTMLElement {
     e.stopPropagation();
     const card = e.target.closest('.trello-card');
     this.saveCardChanges(card);
+  }
+
+  handleDeleteCard(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const card = e.target.closest('.trello-card');
+    this.deleteCard(card);
   }
 
   handleCancelEdit(e) {
@@ -1055,6 +1084,41 @@ class TrelloBoardCard extends HTMLElement {
       name: name,
       description: description
     });
+  }
+
+  deleteCard(card) {
+    const cardId = card.dataset.cardId;
+    const cardName = card.dataset.cardName;
+    
+    // Confirm deletion
+    if (!confirm(`Are you sure you want to delete the card "${cardName}"?`)) {
+      return;
+    }
+    
+    // Add deleting state
+    card.classList.add('deleting');
+    card.style.opacity = '0.5';
+    
+    // Update card count optimistically
+    const container = card.closest('.cards-container');
+    this.updateCardCountsOptimistically(container, null, -1, 0);
+    
+    // Remove card from UI immediately (optimistic update)
+    card.remove();
+    
+    // Call delete service
+    const serviceCall = this._hass.callService('trello', 'delete_card', {
+      card_id: cardId
+    });
+    
+    if (serviceCall && typeof serviceCall.then === 'function') {
+      serviceCall.catch((error) => {
+        console.error('Failed to delete card:', error);
+        // Since we already removed the card, we can't easily restore it
+        // Show error and suggest refresh
+        this.showErrorMessage('Failed to delete card. Please refresh the page to see the current state.');
+      });
+    }
   }
 
   autoResizeTextarea(textarea) {
