@@ -1,4 +1,4 @@
-// Trello Board Card v1.1.2-debug
+// Trello Board Card v1.1.3-debug
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -91,7 +91,9 @@ class TrelloBoardCard extends HTMLElement {
     }
     
     if (!newBoardData) {
-      console.log('[Trello Card] Board disappeared');
+      console.log('[Trello Card] Board disappeared - no board data found');
+      console.log('[Trello Card] Config used:', this.config);
+      console.log('[Trello Card] Has hass:', !!this._hass);
       return this._lastRenderData !== null; // Board disappeared
     }
     
@@ -1239,37 +1241,17 @@ class TrelloBoardCard extends HTMLElement {
   }
 
   static getConfigElement() {
-    // Create a simple config element to avoid card-mod conflicts
-    const element = document.createElement('div');
-    element.innerHTML = `
-      <div style="padding: 16px;">
-        <p>Visual editor not supported. Use YAML mode to configure this card.</p>
-        <p>Basic configuration:</p>
-        <pre style="background: var(--secondary-background-color); padding: 12px; border-radius: 4px;">
-type: custom:trello-board
-board_id: "your_board_id_here"
-styles:
-  card:
-    background: "red"  # Test styling
-        </pre>
-      </div>
-    `;
-    return element;
+    return document.createElement('ha-trello-card-editor');
   }
 
   static getStubConfig() {
     return {
-      board_id: '',
+      entity_id: '',
       show_header: true,
       show_card_counts: true,
       card_background: '',
       card_transparency: 1,
-      styles: {
-        card: {},
-        board_title: {},
-        trello_card: {},
-        list_column: {}
-      }
+      styles: {}
     };
   }
 }
