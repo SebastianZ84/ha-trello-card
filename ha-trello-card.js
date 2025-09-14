@@ -1,4 +1,4 @@
-// Trello Board Card v1.1.4-debug
+// Trello Board Card v1.1.5-debug
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -95,16 +95,28 @@ class TrelloBoardCard extends HTMLElement {
       console.log('[Trello Card] Config used:', this.config);
       console.log('[Trello Card] Has hass:', !!this._hass);
       
-      // Show all available Trello entities for debugging
+      // Show all available board entities for debugging
       if (this._hass && this._hass.states) {
-        const trelloEntities = Object.keys(this._hass.states)
-          .filter(id => id.includes('trello'))
+        const boardEntities = Object.keys(this._hass.states)
+          .filter(id => {
+            const entity = this._hass.states[id];
+            return entity.attributes.board_data || entity.attributes.board_id || id.includes('trello');
+          })
           .map(id => ({
             entity_id: id,
             state: this._hass.states[id].state,
-            attributes: Object.keys(this._hass.states[id].attributes)
+            attributes: Object.keys(this._hass.states[id].attributes),
+            has_board_data: !!this._hass.states[id].attributes.board_data,
+            has_board_id: !!this._hass.states[id].attributes.board_id
           }));
-        console.log('[Trello Card] Available Trello entities:', trelloEntities);
+        console.log('[Trello Card] Available board entities:', boardEntities);
+        
+        // Specifically check the requested entity
+        if (this.config.entity_id && this._hass.states[this.config.entity_id]) {
+          console.log(`[Trello Card] Requested entity ${this.config.entity_id} EXISTS:`, this._hass.states[this.config.entity_id]);
+        } else if (this.config.entity_id) {
+          console.log(`[Trello Card] Requested entity ${this.config.entity_id} NOT FOUND`);
+        }
       }
       
       return this._lastRenderData !== null; // Board disappeared
