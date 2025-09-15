@@ -1,4 +1,4 @@
-// Trello Board Card v1.3.5
+// Trello Board Card v1.3.6
 // Home Assistant custom card for displaying Trello boards with drag & drop functionality
 // Author: Sebastian Zabel
 // https://github.com/SebastianZ84/ha-trello-card
@@ -175,9 +175,7 @@ class TrelloBoardCard extends HTMLElement {
     if (hasChanged) {
       console.log('[Trello Card] Data changed, re-rendering');
     } else {
-      console.log('[Trello Card] Data unchanged, skipping render - but ensuring event listeners are set up');
-      // Even if render is skipped, ensure event listeners are always available
-      this.setupEventListeners();
+      console.log('[Trello Card] Data unchanged, skipping render');
     }
     
     return hasChanged;
@@ -634,10 +632,93 @@ class TrelloBoardCard extends HTMLElement {
     this._setupScrollHandling();
   }
 
+  removeEventListeners() {
+    // Store references to bound functions for proper removal
+    if (!this._boundHandlers) {
+      this._boundHandlers = {
+        dragStart: this.handleDragStart.bind(this),
+        dragEnd: this.handleDragEnd.bind(this),
+        dragOver: this.handleDragOver.bind(this),
+        dragEnter: this.handleDragEnter.bind(this),
+        dragLeave: this.handleDragLeave.bind(this),
+        drop: this.handleDrop.bind(this),
+        cardDoubleClick: this.handleCardDoubleClick.bind(this),
+        addCard: this.handleAddCard.bind(this),
+        editCard: this.handleEditCard.bind(this),
+        saveCard: this.handleSaveCard.bind(this),
+        cancelEdit: this.handleCancelEdit.bind(this),
+        deleteCard: this.handleDeleteCard.bind(this)
+      };
+    }
+
+    // Remove listeners from all elements
+    const cards = this.shadowRoot.querySelectorAll('.trello-card');
+    const containers = this.shadowRoot.querySelectorAll('.cards-container');
+    const addButtons = this.shadowRoot.querySelectorAll('.add-card-btn');
+    const editButtons = this.shadowRoot.querySelectorAll('.edit-btn');
+    const saveButtons = this.shadowRoot.querySelectorAll('.save-btn');
+    const cancelButtons = this.shadowRoot.querySelectorAll('.cancel-btn');
+    const deleteButtons = this.shadowRoot.querySelectorAll('.delete-btn');
+
+    cards.forEach(card => {
+      card.removeEventListener('dragstart', this._boundHandlers.dragStart);
+      card.removeEventListener('dragend', this._boundHandlers.dragEnd);
+      card.removeEventListener('dblclick', this._boundHandlers.cardDoubleClick);
+    });
+
+    containers.forEach(container => {
+      container.removeEventListener('dragover', this._boundHandlers.dragOver);
+      container.removeEventListener('drop', this._boundHandlers.drop);
+      container.removeEventListener('dragenter', this._boundHandlers.dragEnter);
+      container.removeEventListener('dragleave', this._boundHandlers.dragLeave);
+    });
+
+    addButtons.forEach(button => {
+      button.removeEventListener('click', this._boundHandlers.addCard);
+    });
+
+    editButtons.forEach(button => {
+      button.removeEventListener('click', this._boundHandlers.editCard);
+    });
+
+    saveButtons.forEach(button => {
+      button.removeEventListener('click', this._boundHandlers.saveCard);
+    });
+
+    cancelButtons.forEach(button => {
+      button.removeEventListener('click', this._boundHandlers.cancelEdit);
+    });
+
+    deleteButtons.forEach(button => {
+      button.removeEventListener('click', this._boundHandlers.deleteCard);
+    });
+  }
+
   setupEventListeners() {
     // Skip if already setting up to prevent infinite loops
     if (this._settingUpListeners) return;
     this._settingUpListeners = true;
+    
+    // Ensure bound handlers exist
+    if (!this._boundHandlers) {
+      this._boundHandlers = {
+        dragStart: this.handleDragStart.bind(this),
+        dragEnd: this.handleDragEnd.bind(this),
+        dragOver: this.handleDragOver.bind(this),
+        dragEnter: this.handleDragEnter.bind(this),
+        dragLeave: this.handleDragLeave.bind(this),
+        drop: this.handleDrop.bind(this),
+        cardDoubleClick: this.handleCardDoubleClick.bind(this),
+        addCard: this.handleAddCard.bind(this),
+        editCard: this.handleEditCard.bind(this),
+        saveCard: this.handleSaveCard.bind(this),
+        cancelEdit: this.handleCancelEdit.bind(this),
+        deleteCard: this.handleDeleteCard.bind(this)
+      };
+    }
+    
+    // Remove any existing event listeners to prevent duplicates
+    this.removeEventListeners();
     
     // Drag and drop functionality
     const cards = this.shadowRoot.querySelectorAll('.trello-card');
@@ -652,36 +733,36 @@ class TrelloBoardCard extends HTMLElement {
     
 
     cards.forEach(card => {
-      card.addEventListener('dragstart', this.handleDragStart.bind(this));
-      card.addEventListener('dragend', this.handleDragEnd.bind(this));
-      card.addEventListener('dblclick', this.handleCardDoubleClick.bind(this));
+      card.addEventListener('dragstart', this._boundHandlers.dragStart);
+      card.addEventListener('dragend', this._boundHandlers.dragEnd);
+      card.addEventListener('dblclick', this._boundHandlers.cardDoubleClick);
     });
 
     containers.forEach(container => {
-      container.addEventListener('dragover', this.handleDragOver.bind(this));
-      container.addEventListener('drop', this.handleDrop.bind(this));
-      container.addEventListener('dragenter', this.handleDragEnter.bind(this));
-      container.addEventListener('dragleave', this.handleDragLeave.bind(this));
+      container.addEventListener('dragover', this._boundHandlers.dragOver);
+      container.addEventListener('drop', this._boundHandlers.drop);
+      container.addEventListener('dragenter', this._boundHandlers.dragEnter);
+      container.addEventListener('dragleave', this._boundHandlers.dragLeave);
     });
 
     addButtons.forEach(button => {
-      button.addEventListener('click', this.handleAddCard.bind(this));
+      button.addEventListener('click', this._boundHandlers.addCard);
     });
     
     editButtons.forEach(button => {
-      button.addEventListener('click', this.handleEditCard.bind(this));
+      button.addEventListener('click', this._boundHandlers.editCard);
     });
     
     saveButtons.forEach(button => {
-      button.addEventListener('click', this.handleSaveCard.bind(this));
+      button.addEventListener('click', this._boundHandlers.saveCard);
     });
     
     cancelButtons.forEach(button => {
-      button.addEventListener('click', this.handleCancelEdit.bind(this));
+      button.addEventListener('click', this._boundHandlers.cancelEdit);
     });
     
     deleteButtons.forEach(button => {
-      button.addEventListener('click', this.handleDeleteCard.bind(this));
+      button.addEventListener('click', this._boundHandlers.deleteCard);
     });
     
     // Reset the flag
